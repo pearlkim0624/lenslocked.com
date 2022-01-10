@@ -10,6 +10,6 @@ func handlerFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", handlerFunc)
-	http.ListenAndServe(":3000", nil) // localhost port, use built-in handler func
+	http.HandleFunc("/", handlerFunc) // path prefix
+	http.ListenAndServe(":3000", nil) // specify port, use default HandleFunc
 }
