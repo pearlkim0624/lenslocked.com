@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/schema"
 	"lenslocked.com/views"
 )
 
@@ -38,14 +37,8 @@ type SignupForm struct {
 // This is used to create a new user account.
 // POST /signup
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		panic(err)
-	}
-
-	decoder := schema.NewDecoder()
 	var form SignupForm
-	// r.PostForm is a map of our POST form values
-	if err := decoder.Decode(&form, r.PostForm); err != nil {
+	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}
 	fmt.Fprintln(w, form)
