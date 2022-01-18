@@ -42,18 +42,19 @@ func main() {
 	db.AutoMigrate(&User{})
 
 	var u User
-	newDB := db.Where("id = ?", 3).Where("color = ?", "blue")
-	newDB.First(&u)
-	fmt.Println(u)
-
-	var us User = User{
-		Email: "skan@gmail.com",
+	/*
+		newDB := db.Where("id = ?", 3).Where("color = ?", "yellow").First(&u)
+		if newDB.Error != nil {
+			panic(newDB.Error)
+		}
+	*/
+	if err := db.Where("id = ?", 3).Where("color = ?", "yellow").First(&u).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			fmt.Println("No user found!")
+		default:
+			panic(err)
+		}
 	}
-	db.Where(us).First(&us)
-	fmt.Println(us)
-
-	var users []User
-	db.Find(&users)
-	fmt.Println(len(users))
-	fmt.Println(users)
+	fmt.Println(u)
 }
