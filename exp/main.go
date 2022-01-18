@@ -29,6 +29,14 @@ type User struct {
 	Name       string
 	Email      string `gorm:"not null;unique_index"`
 	Color      string
+	Orders     []Order
+}
+
+type Order struct {
+	gorm.Model
+	UserID      uint
+	Amount      int
+	Description string
 }
 
 func main() {
@@ -39,22 +47,45 @@ func main() {
 	}
 	defer db.Close()
 	db.LogMode(true)
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Order{})
 
+	var users []User
+	if err := db.Preload("Orders").Find(&users).Error; err != nil {
+		panic(err)
+	}
+	fmt.Println(users)
+
+	/* Users & Orders
 	var u User
-	/*
-		newDB := db.Where("id = ?", 3).Where("color = ?", "yellow").First(&u)
-		if newDB.Error != nil {
-			panic(newDB.Error)
-		}
-	*/
-	if err := db.Where("id = ?", 3).Where("color = ?", "yellow").First(&u).Error; err != nil {
-		switch err {
-		case gorm.ErrRecordNotFound:
-			fmt.Println("No user found!")
-		default:
-			panic(err)
-		}
+	if err := db.Preload("Orders").First(&u).Error; err != nil {
+		panic(err)
 	}
 	fmt.Println(u)
+	fmt.Println(u.Orders)
+	*/
+
+	/* Create Order
+	var u User
+	if err := db.First(&u).Error; err != nil {
+		panic(err)
+	}
+	createOrder(db, u, 1001, "Fake Description #1")
+	createOrder(db, u, 9999, "Fake Description #2")
+	createOrder(db, u, 100, "Fake Description #3")
+	*/
+
+	//fmt.Println(u)
 }
+
+/*
+func createOrder(db *gorm.DB, user User, amount int, desc string) {
+	err := db.Create(&Order{
+		UserID:      user.ID,
+		Amount:      amount,
+		Description: desc,
+	}).Error
+	if err != nil {
+		panic(err)
+	}
+}
+*/
