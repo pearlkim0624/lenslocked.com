@@ -29,11 +29,23 @@ func main() {
 		Name:  "Michael Scott",
 		Email: "michael@dundermifflin.com",
 	}
-
 	if err := us.Create(&user); err != nil {
 		panic(err)
 	}
 
-	//	user, err := us.ByID(1)
-	fmt.Println(user)
+	if err := us.Delete(user.ID); err != nil {
+		panic(err)
+	}
+
+	//user.Email = "michael@michaelscottpaperco.com"
+	//if err := us.Update(&user); err != nil {
+	//	panic(err)
+	//}
+
+	userByID, err := us.ByID(user.ID)
+	//	userByEmail, err := us.ByEmail(user.Email)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(userByID)
 }
