@@ -31,7 +31,6 @@ type UserService struct {
 // 2 - nil, ErrNotFound
 // 3 - nil, other error
 func (us *UserService) ByID(id uint) (*User, error) {
-
 	var user User
 	err := us.db.Where("id = ?", id).First(&user).Error
 	switch err {
@@ -43,6 +42,17 @@ func (us *UserService) ByID(id uint) (*User, error) {
 		return nil, err
 	}
 
+}
+
+// Create will crete the provided user and backfill data
+// like the ID, CreateAt, and UpdatedAt fields.
+func (us *UserService) Create(user *User) error {
+	/*
+		if user.ID > 0 {
+			return ErrInvalidID
+		}
+	*/
+	return us.db.Create(user).Error
 }
 
 // Closes the UserService database connection
