@@ -23,6 +23,7 @@ func main() {
 	us, err := models.NewUserService(psqlInfo)
 	must(err)
 	defer us.Close()
+	// us.DestructiveReset() // delete the table and reset
 	us.AutoMigrate()
 
 	staticC := controllers.NewStatic()
