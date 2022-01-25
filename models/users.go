@@ -59,6 +59,26 @@ type UserDB interface {
 }
 
 func NewUserService(connectionInfo string) (*UserService, error) {
+	ug, err := NewUserGorm(connectionInfo)
+	if err != nil {
+		panic(err)
+	}
+	return &UserService{
+		UserDB: &userValidator{
+			UserDB: ug,
+		},
+	}, nil
+}
+
+type UserService struct {
+	UserDB
+}
+
+type userValidator struct {
+	UserDB
+}
+
+func NewUserGorm(connectionInfo string) (*userGorm, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
 		panic(err)
@@ -66,14 +86,10 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	db.LogMode(true)
 
 	hmac := hash.NewHMAC(hmacSecretKey)
-	return &UserService{
+	return &userGorm{
 		db:   db,
 		hmac: hmac,
 	}, nil
-}
-
-type UserService struct {
-	UserDB
 }
 
 var _ UserDB = &userGorm{}
