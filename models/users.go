@@ -22,10 +22,6 @@ var (
 	// to a method like Delete.
 	ErrIDInvalid = errors.New("models: ID provided was invalid")
 
-	// ErrPasswordIncorrect is returned when an invalid password
-	// is used when attempting to authenticate a user.
-	ErrPasswordIncorrect = errors.New("models: invalid password provided")
-
 	// ErrEmailRequired is returned when an email address is
 	// not provided when creating a user
 	ErrEmailRequired = errors.New("models: email address is required")
@@ -37,6 +33,10 @@ var (
 	// ErrEmailTaken is returned when an update or create is attempted
 	// with an email address that is already in use
 	ErrEmailTaken = errors.New("models: email address is already taken")
+
+	// ErrPasswordIncorrect is returned when an invalid password
+	// is used when attempting to authenticate a user.
+	ErrPasswordIncorrect = errors.New("models: invalid password provided")
 
 	// ErrPasswordTooShort is returned when an update or create is attempted
 	// with a user password that is less than 8 characters.
@@ -54,9 +54,9 @@ var (
 	// not at least 32 bytes
 	ErrRememberTooShort = errors.New("models: remember token must be at least 32 bytes")
 
-	// ErrPasswordRequired is returned when an update or create is attempted
-	// without a user password provided.
-	ErrRememberRequired = errors.New("models: password is required")
+	// ErrRememberRequired is returned when an update or create is attempted
+	// without a user remember token provided.
+	ErrRememberRequired = errors.New("models: remember token is required")
 )
 
 const userPwPepper = "secret-random-string"
@@ -202,7 +202,7 @@ func (uv *userValidator) ByEmail(email string) (*User, error) {
 	user := User{
 		Email: email,
 	}
-	err := runUserValFuncs(&user, uv.normalizeEmail)
+	err := runUserValFuncs(&user, uv.emailNormalizer)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 	user := User{
 		Remember: token,
 	}
-	err := runUserValFuncs(&user, uv.hmacRemember)
+	err := runUserValFuncs(&user, uv.rememberHMAC)
 	if err != nil {
 		return nil, err
 	}
@@ -226,18 +226,18 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 // Create will crete the provided user and backfill data
 // like the ID, CreateAt, and UpdatedAt fields.
 func (uv *userValidator) Create(user *User) error {
-	// Call setRememberIfUnset before hmacRemember
+	// Call setRememberIfUnset before rememberHMAC
 	err := runUserValFuncs(user,
 		uv.passwordRequired,
 		uv.passwordMinLength,
 		uv.bcryptPassword,
 		uv.passwordHashRequired,
 		uv.setRememberIfUnset,
-		uv.rememberHashRequired,
 		uv.rememberMinBytes,
-		uv.hmacRemember,
-		uv.normalizeEmail,
-		uv.requireEmail,
+		uv.rememberHMAC,
+		uv.rememberHashRequired,
+		uv.emailNormalizer,
+		uv.emailRequired,
 		uv.emailFormat,
 		uv.emailIsAvail)
 	if err != nil {
@@ -253,9 +253,10 @@ func (uv *userValidator) Update(user *User) error {
 		uv.bcryptPassword,
 		uv.passwordHashRequired,
 		uv.rememberMinBytes,
-		uv.hmacRemember,
-		uv.normalizeEmail,
-		uv.requireEmail,
+		uv.rememberHMAC,
+		uv.rememberHashRequired,
+		uv.emailNormalizer,
+		uv.emailRequired,
 		uv.emailFormat,
 		uv.emailIsAvail)
 	if err != nil {
@@ -294,7 +295,7 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	return nil
 }
 
-func (uv *userValidator) hmacRemember(user *User) error {
+func (uv *userValidator) rememberHMAC(user *User) error {
 	if user.Remember == "" {
 		return nil
 	}
@@ -344,13 +345,13 @@ func (uv *userValidator) idGreaterThan(n int) userValFunc {
 	})
 }
 
-func (uv *userValidator) normalizeEmail(user *User) error {
+func (uv *userValidator) emailNormalizer(user *User) error {
 	user.Email = strings.ToLower(user.Email)
 	user.Email = strings.TrimSpace(user.Email)
 	return nil
 }
 
-func (uv *userValidator) requireEmail(user *User) error {
+func (uv *userValidator) emailRequired(user *User) error {
 	if user.Email == "" {
 		return ErrEmailRequired
 	}
