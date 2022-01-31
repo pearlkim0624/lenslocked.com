@@ -9,8 +9,9 @@ func NewServices(connectionInfo string) (*Services, error) {
 	}
 	db.LogMode(true)
 	return &Services{
-		User: NewUserService(db),
-		db:   db,
+		User:    NewUserService(db),
+		Gallery: NewGalleryService(db),
+		db:      db,
 	}, nil
 }
 
@@ -37,5 +38,5 @@ func (s *Services) DestructiveReset() error {
 // AutoMigrate will attemp to automatically migrate the
 // table
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}).Error
+	return s.db.AutoMigrate(&User{}, &Gallery{}).Error
 }

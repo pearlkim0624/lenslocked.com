@@ -23,5 +23,38 @@ type GalleryDB interface {
 	Create(gallery *Gallery) error
 }
 
-type galleryGorm struct {
+func NewGalleryService(db *gorm.DB) GalleryService {
+	return &galleryService{
+		GalleryDB: &galleryValidator{&galleryGorm{db}},
+	}
 }
+
+type galleryService struct {
+	GalleryDB
+}
+
+type galleryValidator struct {
+	GalleryDB
+}
+
+var _ GalleryDB = &galleryGorm{}
+
+type galleryGorm struct {
+	db *gorm.DB
+}
+
+func (gg *galleryGorm) Create(gallery *Gallery) error {
+	return gg.db.Create(gallery).Error
+}
+
+// Update will update provided gallery with all of the data
+// in the provided gallery object.
+//func (gg *userGorm) Update(gallery Gallery) error {
+//	return gg.db.Save(gallery).Error
+//}
+
+// Delete will delete the gallery with the provided id
+//func (gg *userGorm) Delete(id uint) error {
+//	gallery := User{Model: gorm.Model{ID: id}}
+//	return gg.db.Delete(&gallery).Error
+//}
