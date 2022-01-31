@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 
@@ -11,52 +10,6 @@ import (
 	"lenslocked.com/rand"
 
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	// ErrNotFound is returned when a resource cannot be found
-	// in the database.
-	ErrNotFound = errors.New("models: resource not found")
-
-	// ErrIDInvalid is returned when an invalid ID is provided
-	// to a method like Delete.
-	ErrIDInvalid = errors.New("models: ID provided was invalid")
-
-	// ErrEmailRequired is returned when an email address is
-	// not provided when creating a user
-	ErrEmailRequired = errors.New("models: email address is required")
-
-	// ErrEmailInvalid is returned when an email address provided
-	// does not match any of our requirements
-	ErrEmailInvalid = errors.New("models: email address is not valid")
-
-	// ErrEmailTaken is returned when an update or create is attempted
-	// with an email address that is already in use
-	ErrEmailTaken = errors.New("models: email address is already taken")
-
-	// ErrPasswordIncorrect is returned when an invalid password
-	// is used when attempting to authenticate a user.
-	ErrPasswordIncorrect = errors.New("models: invalid password provided")
-
-	// ErrPasswordTooShort is returned when an update or create is attempted
-	// with a user password that is less than 8 characters.
-	ErrPasswordTooShort = errors.New("models: password must be at least 8 characters long")
-
-	// ErrPasswordRequired is returned when an update or create is attempted
-	// without a user password provided.
-	ErrPasswordRequired = errors.New("models: password is required")
-
-	// ErrPasswordHashRequired is returned when an update or create is attempted
-	// without a password hash provided.
-	ErrPasswordHashRequired = errors.New("models: password hash is required")
-
-	// ErrRememberTooShort is returned when a remember token is
-	// not at least 32 bytes
-	ErrRememberTooShort = errors.New("models: remember token must be at least 32 bytes")
-
-	// ErrRememberRequired is returned when an update or create is attempted
-	// without a user remember token provided.
-	ErrRememberRequired = errors.New("models: remember token is required")
 )
 
 const userPwPepper = "secret-random-string"
