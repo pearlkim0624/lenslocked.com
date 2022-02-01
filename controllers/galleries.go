@@ -1,6 +1,10 @@
 package controllers
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+
 	"lenslocked.com/models"
 	"lenslocked.com/views"
 )
@@ -17,6 +21,33 @@ type Galleries struct {
 	gs  models.GalleryService
 }
 
+type GalleryForm struct {
+	Title string `schema:"title"`
+}
+
+// POST /galleries
+func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
+	var vd views.Data
+	var form GalleryForm
+	if err := parseForm(r, &form); err != nil {
+		log.Println(err)
+		vd.SetAlert(err)
+		g.New.Render(w, vd)
+		return
+	}
+
+	gallery := models.Gallery{
+		Title: form.Title,
+	}
+	if err := g.gs.Create(&gallery); err != nil {
+		vd.SetAlert(err)
+		g.New.Render(w, vd)
+		return
+	}
+
+	fmt.Fprintln(w, gallery)
+}
+
 /*
 // New is used to render the form where a user can create a new user account.
 // GET /signup
@@ -24,43 +55,6 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	u.NewView.Render(w, nil)
 }
 
-type SignupForm struct {
-	Name     string `schema:"name"`
-	Email    string `schema:"email"`
-	Password string `schema:"password"`
-}
-
-// Create is used to process the signup form when a user submits it.
-// This is used to create a new user account.
-// POST /signup
-func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
-	var vd views.Data
-	var form SignupForm
-	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
-		vd.SetAlert(err)
-		u.NewView.Render(w, vd)
-		return
-	}
-
-	user := models.User{
-		Name:     form.Name,
-		Email:    form.Email,
-		Password: form.Password,
-	}
-	if err := u.us.Create(&user); err != nil {
-		vd.SetAlert(err)
-		u.NewView.Render(w, vd)
-		return
-	}
-
-	err := u.signIn(w, &user)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	http.Redirect(w, r, "/cookietest", http.StatusFound)
-}
 
 type LoginForm struct {
 	Email    string `schema:"email"`
