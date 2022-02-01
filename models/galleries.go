@@ -48,15 +48,3 @@ type galleryGorm struct {
 func (gg *galleryGorm) Create(gallery *Gallery) error {
 	return gg.db.Create(gallery).Error
 }
-
-// Update will update provided gallery with all of the data
-// in the provided gallery object.
-//func (gg *userGorm) Update(gallery Gallery) error {
-//	return gg.db.Save(gallery).Error
-//}
-
-// Delete will delete the gallery with the provided id
-//func (gg *userGorm) Delete(id uint) error {
-//	gallery := User{Model: gorm.Model{ID: id}}
-//	return gg.db.Delete(&gallery).Error
-//}
