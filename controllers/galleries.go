@@ -20,6 +20,7 @@ func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
 		New:      views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
+		EditView: views.NewView("bootstrap", "galleries/edit"),
 		gs:       gs,
 		r:        r,
 	}
@@ -28,6 +29,7 @@ func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 type Galleries struct {
 	New      *views.View
 	ShowView *views.View
+	EditView *views.View
 	gs       models.GalleryService
 	r        *mux.Router
 }
@@ -38,26 +40,29 @@ type GalleryForm struct {
 
 // GET /galleries/:id
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr := vars["id"]
-	id, err := strconv.Atoi(idStr)
+	gallery, err := g.galleryByID(w, r)
 	if err != nil {
-		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
-		return
-	}
-	gallery, err := g.gs.ByID(uint(id))
-	if err != nil {
-		switch err {
-		case models.ErrNotFound:
-			http.Error(w, "Gallery not found", http.StatusNotFound)
-		default:
-			http.Error(w, "Whoops! Something went wrong.", http.StatusInternalServerError)
-		}
 		return
 	}
 	var vd views.Data
 	vd.Yield = gallery
 	g.ShowView.Render(w, vd)
+}
+
+// GET /galleries/:id/edit
+func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		http.Error(w, "Gallery not found.", http.StatusNotFound)
+		return
+	}
+	var vd views.Data
+	vd.Yield = gallery
+	g.EditView.Render(w, vd)
 }
 
 // POST /galleries
@@ -96,88 +101,24 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
-/*
-// New is used to render the form where a user can create a new user account.
-// GET /signup
-func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
-}
-
-
-type LoginForm struct {
-	Email    string `schema:"email"`
-	Password string `schema:"password"`
-}
-
-// Login is used to verify the provided email address and
-// password and then log the user in if they are correct.
-// POST /login
-func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
-	vd := views.Data{}
-	var form LoginForm
-	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
-		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
-		return
+// galleryByID lookups a gallery by ID and return the gallery
+func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
+		return nil, err
 	}
-
-	// Authenticating users
-	user, err := u.us.Authenticate(form.Email, form.Password)
+	gallery, err := g.gs.ByID(uint(id))
 	if err != nil {
 		switch err {
 		case models.ErrNotFound:
-			vd.AlertError("Invalid email address")
+			http.Error(w, "Gallery not found", http.StatusNotFound)
 		default:
-			vd.SetAlert(err)
+			http.Error(w, "Whoops! Something went wrong.", http.StatusInternalServerError)
 		}
-		u.LoginView.Render(w, vd)
-		return
+		return nil, err
 	}
-	err = u.signIn(w, user)
-	if err != nil {
-		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
-		return
-	}
-	http.Redirect(w, r, "/cookietest", http.StatusFound)
+	return gallery, nil
 }
-
-// signIn is used to sign the given user in via cookies
-func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-		err = u.us.Update(user)
-		if err != nil {
-			return err
-		}
-	}
-
-	cookie := http.Cookie{
-		Name:     "remember_token",
-		Value:    user.Remember,
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookie)
-	return nil
-}
-
-// CookieTest is used to display cookies set on the current user
-func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("remember_token")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	user, err := u.us.ByRemember(cookie.Value)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Fprintln(w, user)
-}
-*/
