@@ -64,7 +64,7 @@ func (gv *galleryValidator) Update(gallery *Gallery) error {
 }
 
 func (gv *galleryValidator) Delete(id uint) error {
-	if id <= 0 {
+	if int(id) <= 0 {
 		return ErrIDInvalid
 	}
 	return gv.GalleryDB.Delete(id)
