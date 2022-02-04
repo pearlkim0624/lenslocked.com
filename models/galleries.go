@@ -13,8 +13,9 @@ type Gallery struct {
 	//	DeletedAt *time.Time `sql:"index"`
 	// }
 	gorm.Model
-	UserID uint   `gorm:"not null;index"`
-	Title  string `gorm:"not null"`
+	UserID uint     `gorm:"not null;index"`
+	Title  string   `gorm:"not null"`
+	Images []string `gorm:"-"`
 }
 
 type GalleryService interface {
