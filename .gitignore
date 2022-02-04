@@ -20,5 +20,12 @@
 # Go workspace file
 go.work
 
+# Anything under a tmp folder
+**/tmp/*
+
+# Don't include our binary
+lenslocked.com
+images/**
+
 # temporary personal saving file
 *.go_*
