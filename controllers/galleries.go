@@ -189,6 +189,7 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 		vd.Yield = gallery
 		vd.SetAlert(err)
 		g.EditView.Render(w, r, vd)
+		return
 	}
 	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
