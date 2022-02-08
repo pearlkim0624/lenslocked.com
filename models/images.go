@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,10 @@ type Image struct {
 }
 
 func (i *Image) Path() string {
-	return "/" + i.RelativePath()
+	temp := url.URL{
+		Path: "/" + i.RelativePath(),
+	}
+	return temp.String()
 }
 
 func (i *Image) RelativePath() string {
@@ -47,6 +51,7 @@ func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string)
 	if err != nil {
 		return err
 	}
+	defer dst.Close()
 	// Copy reader data to the destination file
 	_, err = io.Copy(dst, r)
 	if err != nil {
