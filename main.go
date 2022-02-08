@@ -13,17 +13,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "Skan3147**"
-	dbname   = "lenslocked_dev"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	services, err := models.NewServices(psqlInfo)
+	cfg := DefaultConfig()
+	dbCfg := DefaultPostgresConfig()
+
+	services, err := models.NewServices(dbCfg.Dialect(), dbCfg.ConnectionInfo())
 	must(err)
 	defer services.Close()
 	//services.DestructiveReset() // delete the table and reset
@@ -94,8 +88,8 @@ func main() {
 		Methods("GET").
 		Name(controllers.ShowGallery)
 
-	fmt.Println("Starting the server on :3000....")
-	http.ListenAndServe(":3000", csrfMw(userMw.Apply(r)))
+	fmt.Printf("Starting the server on : %d....\n", cfg.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {
