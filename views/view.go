@@ -64,6 +64,13 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) 
 			Yield: data,
 		}
 	}
+	//Lookup the alert and assign it if one is persisted
+	// we may check if there is an previous alert by add "vd.Alert == nil"
+	if alert := getAlert(r); alert != nil {
+		vd.Alert = alert
+		clearAlert(w)
+	}
+
 	vd.User = context.User(r.Context())
 	var buf bytes.Buffer
 
