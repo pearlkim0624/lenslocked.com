@@ -1,5 +1,5 @@
 # Lens Locked
 
-An awesome photo gallery application 
+An photo gallery application implemented in Go.
 
-with Web development course by Jon Calhoun
+It has been developed with Web development course by Jon Calhoun
